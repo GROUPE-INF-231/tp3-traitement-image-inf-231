@@ -1,1 +1,2 @@
-# tp3-traitement-image-inf-231
+# INF231: Technique de conception d'algorithmes et structures de données.
+# TP: Traitement d'images avec les fichiers et tableau 
