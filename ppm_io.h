@@ -19,8 +19,10 @@ PPMImage* create_ppm_image(int width, int height, int max_color);
 PPMImage* create_Image();
 void write_ppm(PPMImage* img, char* filename);
 PPMImage* read_ppm(char* filename);
-void write_ppm(PPMImage* img, char* filename);
+void free_ppm_img(PPMImage* img);
+int clamp(int value, int min, int max);
+char get_dominant_color(Pixel p);
+int are_valid_coordinates(PPMImage* img, int row_1, int row_2, int column_1, int column_2);
+PPMImage* copy_image(PPMImage* img);
 
-
-PPMImage* read_ppm(char* filename);
 #endif
