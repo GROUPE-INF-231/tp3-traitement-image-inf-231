@@ -21,8 +21,11 @@ void write_ppm(PPMImage* img, char* filename);
 PPMImage* read_ppm(char* filename);
 void free_ppm_img(PPMImage* img);
 int clamp(int value, int min, int max);
+int valmedian(int *tab, int n);
+PPMImage *filtmedian(PPMImage *img);
 char get_dominant_color(Pixel p);
 int are_valid_coordinates(PPMImage* img, int row_1, int row_2, int column_1, int column_2);
 PPMImage* copy_image(PPMImage* img);
+
 
 #endif
