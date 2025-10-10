@@ -1,6 +1,6 @@
 # INF231: Technique de conception d'algorithmes et structures de données.
 
-# TP: Traitement d'images avec les fichiers et tableau 
+# TP 3: Traitement d'images avec les fichiers et tableau 
 
 # SUPERVISEUR 
 PR. MELATAGIA Paulin
@@ -46,3 +46,18 @@ Ce filtre réduit le bruit en analysant le voisinage de chaque pixel. Pour chaqu
 **• BAKALACK Basile Romain 23V2529**
 
 **• NGUIMGOU ZEPA Eveline Oceane 24F2579**
+
+# Exécution et Compilation
+Pour compiler le projet, utilisez :
+```bash
+gcc main.c operations.c ppm_io.c -o ppmviewer
+```
+OU
+```bash
+gcc *c -o ppmviewer
+```
+
+Lancez l’application avec :
+```bash
+./ppmviewer.exe
+```
