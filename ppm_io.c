@@ -55,77 +55,31 @@ PPMImage* create_ppm_image(int width, int height, int max_color) {
     return img;
 }
 
-PPMImage* create_Image() {
-    int width, height;
-    printf("Entrez la largeur et la hauteur de l'image :\n");
-    do {
-        scanf("%d %d", &width, &height);
-        if (width <= 0 || height <= 0) {
-            printf("Erreur ! Entrez des valeurs correctes pour la largeur et la hauteur :\n");
-        }
-    } while (width <= 0 || height <= 0);
-
-    int max_color;
-    printf("Entrez le nombre maximum de couleur (max : 255) :\n");
-    do {
-        scanf("%d", &max_color);
-        if (max_color < 0 || max_color > 255) {
-            printf("Erreur ! Entrez une valeur de couleur comprise entre 0 et 255 :\n");
-        }
-    } while (max_color < 0 || max_color > 255);
-
-    PPMImage* img = create_ppm_image(width, height, max_color);
-    if (img == NULL) {
-        fprintf(stderr, "Erreur : Echec de la creation de l'image\n");
-        exit(EXIT_FAILURE);
-    }
-
-    Pixel p;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            printf("Entrez les valeurs rouge, vert, bleu pour le pixel (%d,%d) :\n", i, j);
-            do {
-                scanf("%d %d %d", &p.r, &p.g, &p.b);
-                if (p.r < 0 || p.r > max_color || p.g < 0 || p.g > max_color || p.b < 0 || p.b > max_color) {
-                    printf("Erreur ! Entrez des valeurs r(rouge) g(vert) b(bleu) comprises entre 0 - %d :\n", max_color);
-                }
-            } while (p.r < 0 || p.r > max_color || p.g < 0 || p.g > max_color || p.b < 0 || p.b > max_color);
-
-            img->pixels[i][j] = p;
-        }
-    }
-
-    // Retirer le character nouvelle ligne creer automatiquement
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
-
-    return img;
-}
-
 void write_ppm(PPMImage* img, char* filename) {
     if (img == NULL) {
+        fprintf(stderr, "Error: Cannot write NULL image\n");
         return;
     }
 
     FILE* imagefile = fopen(filename, "w");
     if (imagefile == NULL) {
-        fprintf(stderr, "Erreur ! Impossible d'ouvrir le fichier %s en mode ecriture\n", filename);
+        fprintf(stderr, "Error: Cannot open file for writing: %s\n", filename);
         return;
     }
 
-    char description[100];
-    printf("Entrez une courte description pour l'image :\n");
-    fgets(description, sizeof(description), stdin);
-    description[strcspn(description, "\n")] = '\0';
+    // Write header without asking for description
+    fprintf(imagefile, "%s\n", img->version);
+    fprintf(imagefile, "%d %d\n", img->width, img->height);
+    fprintf(imagefile, "%d\n", img->max_color);
 
-    fprintf(imagefile, "%s\n# %s\n%d %d\n%d\n", img->version, description, img->width, img->height, img->max_color);
-
-    int i, j;
-    for (i = 0; i < img->height; i++) {
-        for (j = 0; j < img->width; j++) {
-            fprintf(imagefile, "%d %d %d ", img->pixels[i][j].r, img->pixels[i][j].g, img->pixels[i][j].b);
+    // Write pixel data
+    for (int i = 0; i < img->height; i++) {
+        for (int j = 0; j < img->width; j++) {
+            fprintf(imagefile, "%d %d %d ",
+                img->pixels[i][j].r,
+                img->pixels[i][j].g,
+                img->pixels[i][j].b);
         }
-
         fprintf(imagefile, "\n");
     }
 
@@ -135,54 +89,96 @@ void write_ppm(PPMImage* img, char* filename) {
 PPMImage* read_ppm(char* filename) {
     FILE* imagefile = fopen(filename, "r");
     if (imagefile == NULL) {
-        fprintf(stderr, "Erreur ! Echec de l'ouverture de l'image %s.\n", filename);
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Cannot open file: %s\n", filename);
+        return NULL;
     }
 
     PPMImage* img = malloc(sizeof(PPMImage));
     if (img == NULL) {
-        printf("Echec de l'allocation memoire !\n");
-        exit(EXIT_FAILURE);
+        fclose(imagefile);
+        return NULL;
     }
 
-    char line[500];
+    // Read version
+    if (fscanf(imagefile, "%2s", img->version) != 1) {
+        fprintf(stderr, "Error reading PPM version\n");
+        free(img);
+        fclose(imagefile);
+        return NULL;
+    }
 
-    fgets(img->version, sizeof(img->version), imagefile);
+    // Skip comments and read dimensions
+    int ch;
+    while ((ch = fgetc(imagefile)) == ' ' || ch == '\t' || ch == '\n' || ch == '#') {
+        if (ch == '#') {
+            while ((ch = fgetc(imagefile)) != '\n' && ch != EOF);
+        }
+    }
+    ungetc(ch, imagefile);
 
-    do {
-        fgets(line, sizeof(line), imagefile);
-    } while (line[0] == '#');
+    if (fscanf(imagefile, "%d %d", &img->width, &img->height) != 2) {
+        fprintf(stderr, "Error reading image dimensions\n");
+        free(img);
+        fclose(imagefile);
+        return NULL;
+    }
 
-    sscanf(line, "%d %d", &img->width, &img->height);
+    // Read max color
+    while ((ch = fgetc(imagefile)) == ' ' || ch == '\t' || ch == '\n' || ch == '#') {
+        if (ch == '#') {
+            while ((ch = fgetc(imagefile)) != '\n' && ch != EOF);
+        }
+    }
+    ungetc(ch, imagefile);
 
-    do {
-        fgets(line, sizeof(line), imagefile);
-    } while (line[0] == '#');
+    if (fscanf(imagefile, "%d", &img->max_color) != 1) {
+        fprintf(stderr, "Error reading max color value\n");
+        free(img);
+        fclose(imagefile);
+        return NULL;
+    }
 
-    sscanf(line, "%d", &img->max_color);
-
+    // Allocate pixel array
     img->pixels = malloc(img->height * sizeof(Pixel*));
     if (img->pixels == NULL) {
+        fprintf(stderr, "Memory allocation failed for rows\n");
         free(img);
-        exit(EXIT_FAILURE);
+        fclose(imagefile);
+        return NULL;
     }
 
     for (int i = 0; i < img->height; i++) {
         img->pixels[i] = malloc(img->width * sizeof(Pixel));
-        if (!img->pixels[i]) {
-            for (int k = 0; k < i; k++) free(img->pixels[k]);
+        if (img->pixels[i] == NULL) {
+            fprintf(stderr, "Memory allocation failed for row %d\n", i);
+            // Free previously allocated rows
+            for (int j = 0; j < i; j++) {
+                free(img->pixels[j]);
+            }
             free(img->pixels);
             free(img);
-            exit(EXIT_FAILURE);
+            fclose(imagefile);
+            return NULL;
         }
     }
 
+    // Read pixel data
     for (int i = 0; i < img->height; i++) {
         for (int j = 0; j < img->width; j++) {
-            fscanf(imagefile, "%d %d %d",
+            if (fscanf(imagefile, "%d %d %d",
                 &img->pixels[i][j].r,
                 &img->pixels[i][j].g,
-                &img->pixels[i][j].b);
+                &img->pixels[i][j].b) != 3) {
+                fprintf(stderr, "Error reading pixel data at (%d,%d)\n", i, j);
+                // Cleanup and return
+                for (int k = 0; k < img->height; k++) {
+                    free(img->pixels[k]);
+                }
+                free(img->pixels);
+                free(img);
+                fclose(imagefile);
+                return NULL;
+            }
         }
     }
 
@@ -229,13 +225,12 @@ char get_dominant_color(Pixel p) {
 }
 
 int are_valid_coordinates(PPMImage* img, int row_1, int row_2, int column_1, int column_2) {
-    if (row_1 < 0 || column_1 < 0) {
+    if (img == NULL) return 0;
+
+    if (row_1 < 0 || row_2 <= row_1 || row_2 > img->height) {
         return 0;
     }
-    if (row_2 > img->height || column_2 > img->width) {
-        return 0;
-    }
-    if (row_1 >= row_2 || column_1 >= column_2) {
+    if (column_1 < 0 || column_2 <= column_1 || column_2 > img->width) {
         return 0;
     }
     return 1;
@@ -243,46 +238,48 @@ int are_valid_coordinates(PPMImage* img, int row_1, int row_2, int column_1, int
 
 PPMImage* copy_image(PPMImage* img) {
     if (img == NULL) {
-        printf("Erreur ! Image inexistante\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Error: Cannot copy NULL image\n");
+        return NULL;
     }
 
     PPMImage* copy = malloc(sizeof(PPMImage));
     if (copy == NULL) {
-        printf("Echec de l'allocation memoire !\n");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "Memory allocation failed for PPMImage copy\n");
+        return NULL;
     }
 
+    // Copy basic info
     strcpy(copy->version, img->version);
     copy->width = img->width;
     copy->height = img->height;
     copy->max_color = img->max_color;
 
+    // Allocate pixel array
     copy->pixels = malloc(copy->height * sizeof(Pixel*));
     if (copy->pixels == NULL) {
+        fprintf(stderr, "Memory allocation failed for pixel rows in copy\n");
         free(copy);
-        printf("Memory allocation failed for pixel rows.\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     for (int i = 0; i < copy->height; i++) {
         copy->pixels[i] = malloc(copy->width * sizeof(Pixel));
         if (copy->pixels[i] == NULL) {
-            for (int k = 0; k < i; k++) free(copy->pixels[k]);
+            fprintf(stderr, "Memory allocation failed for row %d in copy\n", i);
+            // Free previously allocated rows
+            for (int j = 0; j < i; j++) {
+                free(copy->pixels[j]);
+            }
             free(copy->pixels);
             free(copy);
-            printf("Memory allocation failed for pixel columns.\n");
-            exit(EXIT_FAILURE);
+            return NULL;
         }
-    }
 
-    for (int i = 0; i < copy->height; i++) {
+        // Copy pixel data
         for (int j = 0; j < copy->width; j++) {
             copy->pixels[i][j] = img->pixels[i][j];
         }
     }
 
     return copy;
-
 }
-

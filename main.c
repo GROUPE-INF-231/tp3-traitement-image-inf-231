@@ -1,228 +1,210 @@
 #include <stdio.h>
-
+#include <stdlib.h>
 #include <string.h>
 #include "ppm_io.h"
-#include "operations.h" // Fonctions gris, neg, dom, cut
+#include "operations.h"
+#define MAX_ARGS 10
+#define MAX_INPUT 100
 
-// Renommer les fonctions readPicture/imread en read_ppm et freeImagePPM/freePicture en free_ppm_img
-// pour uniformiser le code et utiliser le code du fichier ppm_io.c
+void display_help() {
+    printf("Liste des commandes disponibles :\n");
+    printf("dom <R ou G ou B> <val> <fichier.ppm>\n");
+    printf("\tFoncer ou eclaircir une couleur dominante\n\n");
+    printf("gris <fichier.ppm>\n");
+    printf("\tConvertir l image en niveaux de gris\n\n");
+    printf("size <fichier.ppm>\n");
+    printf("\tAfficher la taille de l image\n\n");
+    printf("cut <fichier.ppm> l1 l2 c1 c2 <fichier_resultat.ppm>\n");
+    printf("\tDecouper une partie de l image\n\n");
+    printf("neg <fichier.ppm> <fichier_resultat.ppm>\n");
+    printf("\tCreer le negatif de l image\n\n");
+    printf("fil <fichier.ppm> <fichier_resultat.ppm>\n");
+    printf("\tAppliquer le filtre median\n\n");
+    printf("help\n");
+    printf("\tAfficher cette liste de commandes\n\n");
+    printf("quit\n");
+    printf("\tQuitter le programme\n\n");
+}
 
 int main() {
-    char command[256];
-    PPMImage* img = NULL;
-    char filename[100]; // Nom du fichier actuellement chargé
+    char input[MAX_INPUT];
+    char* arg[MAX_ARGS];
+    int argc;
 
-    printf("Bienvenue dans PPMViewer ! Tapez 'help' pour la liste des commandes.\n");
+    printf("\n***********************************************************\n");
+    printf("Application de traitement d images PPM\n");
+    printf("***********************************************************\n");
 
     while (1) {
-        printf("PPMViewer> ");
-        if (scanf("%s", command) != 1) {
-            // Gérer la fin de fichier (EOF) ou erreur de lecture
+        printf("ppmviewer> ");
+        if (!fgets(input, sizeof(input), stdin)) {
+            printf("\n");
             break;
         }
 
-        // --- Commande d’aide ---
-        if (strcmp(command, "help") == 0) {
-            printf("\nCommandes disponibles :\n");
-            printf(" new <fichier>              - Creer une nouvelle image PPM et l'enregistrer\n");
-            printf(" load <fichier>             - Charger une image existante\n");
-            printf(" save <fichier>             - Sauvegarder l'image actuelle (si chargee)\n");
-            printf(" size                       - Afficher la taille de l'image chargee\n");
-            printf(" gris <fichier_resultat>    - Convertir l'image chargee en niveaux de gris\n");
-            printf(" neg <fichier_resultat>     - Créer le négatif de l'image chargee\n");
-            printf(" fil <fichier_resultat>     - Appliquer un filtre médian 3x3 a l'image chargee\n");
-            printf(" cut l1 l2 c1 c2 <fichier>  - Découper une sous-image (lignes l1 a l2, colonnes c1 a c2)\n");
-            printf(" dom R|G|B val <fichier>    - Ajuster la luminosite (val) des pixels a dominante R, G ou B\n");
-            printf(" exit                       - Quitter le programme\n\n");
+        input[strcspn(input, "\n")] = '\0';
+
+        argc = 0;
+        char* token = strtok(input, " ");
+        while (token != NULL && argc < MAX_ARGS) {
+            arg[argc++] = token;
+            token = strtok(NULL, " ");
         }
+        if (argc == 0) continue;
 
-        // --- Commande load ---
-        else if (strcmp(command, "load") == 0) {
-            char load_file[100];
-            if (scanf("%s", load_file) != 1) {
-                printf("Erreur: Nom de fichier manquant.\n");
-                continue;
-            }
-
-            if (img) free_ppm_img(img);
-            img = read_ppm(load_file);
-            if (img) {
-                strcpy(filename, load_file); // Garder une trace du nom de fichier
-                printf("Image %s chargee (%d x %d).\n", filename, img->width, img->height);
-            } else {
-                // read_ppm affiche déjà une erreur, on remet img a NULL
-                img = NULL;
-            }
+        if (strcmp(arg[0], "quit") == 0) {
+            return 0;
         }
-
-        // --- Commande save ---
-        else if (strcmp(command, "save") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
-            }
-            char save_file[100];
-            if (scanf("%s", save_file) != 1) {
-                printf("Erreur: Nom de fichier de sauvegarde manquant.\n");
-                continue;
-            }
-            write_ppm(img, save_file);
-            printf("Image sauvegardee sous %s\n", save_file);
+        else if (strcmp(arg[0], "help") == 0) {
+            display_help();
         }
-
-        // --- Commande size ---
-        else if (strcmp(command, "size") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
+        else if (strcmp(arg[0], "dom") == 0) {
+            if (argc != 4) {
+                printf("Usage: dom <R/G/B> <val> <fichier.ppm>\n");
             }
-            // Opération 4: Afficher la taille
-            printf("Taille de l'image: %d x %d pixels (Largeur x Hauteur)\n", img->width, img->height);
-        }
+            else {
+                char dominant = arg[1][0];
+                int ajustement = atoi(arg[2]);
+                char* filename = arg[3];
 
-        // --- Commande new ---
-        else if (strcmp(command, "new") == 0) {
-            if (img) free_ppm_img(img);
-            img = create_Image(); // Demande largeur, hauteur et pixels a l'utilisateur
+                printf("Reading image: %s\n", filename);
+                PPMImage* img = read_ppm(filename);
+                if (img == NULL) {
+                    printf("fichier non trouve\n");
+                }
+                else {
+                    printf("Image loaded: %dx%d\n", img->width, img->height);
+                    PPMImage* result = dom_operation(img, dominant, ajustement);
+                    if (result) {
+                        // Create output filename
+                        char output_filename[256];
+                        strcpy(output_filename, filename);
+                        char* dot = strrchr(output_filename, '.');
+                        if (dot != NULL) {
+                            *dot = '\0';
+                        }
+                        strcat(output_filename, "_dom.ppm");
 
-            char nouveau[100];
-            printf("Entrez le nom du fichier pour enregistrer la nouvelle image : ");
-            scanf("%s", nouveau);
-
-            // Retirer le caractère nouvelle ligne créer automatiquement avant write_ppm
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF);
-
-            write_ppm(img, nouveau);
-            strcpy(filename, nouveau);
-            printf("Image creee et enregistree sous %s\n", nouveau);
-        }
-
-        // --- Commande gris ---
-        else if (strcmp(command, "gris") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
-            }
-            char nouveau[100];
-            if (scanf("%s", nouveau) != 1) {
-                printf("Erreur: Nom de fichier de resultat manquant.\n");
-                continue;
-            }
-
-            PPMImage* gris_img = gris_operation(img); // Opération 2
-            if (gris_img) {
-                write_ppm(gris_img, nouveau);
-                free_ppm_img(gris_img);
-                printf("Conversion en niveaux de gris effectuee -> %s\n", nouveau);
+                        printf("Writing result to: %s\n", output_filename);
+                        write_ppm(result, output_filename);
+                        free_ppm_img(result);
+                        printf("operation effectuee ; %s cree\n", output_filename);
+                    }
+                    free_ppm_img(img);
+                }
             }
         }
+        else if (strcmp(arg[0], "gris") == 0) {
+            if (argc != 2) {
+                printf("Usage: gris <fichier.ppm>\n");
+            }
+            else {
+                char* filename = arg[1];
+                PPMImage* img = read_ppm(filename);
+                if (img == NULL) {
+                    printf("fichier non trouve\n");
+                }
+                else {
+                    PPMImage* result = gris_operation(img);
+                    if (result) {
 
-        // --- Commande neg ---
-        else if (strcmp(command, "neg") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
-            }
-            char nouveau[100];
-            if (scanf("%s", nouveau) != 1) {
-                printf("Erreur: Nom de fichier de resultat manquant.\n");
-                continue;
-            }
+                        char output_filename[100];
+                        strcpy(output_filename, filename);
+                        char* dot = strrchr(output_filename, '.');
+                        if (dot != NULL) {
+                            *dot = '\0';
+                        }
+                        strcat(output_filename, "_gris.ppm");
 
-            PPMImage* neg_img = neg_operation(img); // Opération 3
-            if (neg_img) {
-                write_ppm(neg_img, nouveau);
-                free_ppm_img(neg_img);
-                printf("Négatif de l'image cree -> %s\n", nouveau);
-            }
-        }
-
-        // --- Commande fil (Filtre médian) ---
-        else if (strcmp(command, "fil") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
-            }
-            char nouveau[100];
-            if (scanf("%s", nouveau) != 1) {
-                printf("Erreur: Nom de fichier de resultat manquant.\n");
-                continue;
-            }
-
-            PPMImage* filtre = filtmedian(img); // Opération 6 (déjà implémentée dans filtre_median.c)
-            if (filtre) {
-                write_ppm(filtre, nouveau);
-                free_ppm_img(filtre);
-                printf("Filtre médian appliqué -> %s\n", nouveau);
+                        write_ppm(result, output_filename);
+                        free_ppm_img(result);
+                        printf("operation effectuee ; %s cree\n", output_filename);
+                    }
+                    free_ppm_img(img);
+                }
             }
         }
-
-        // --- Commande cut ---
-        else if (strcmp(command, "cut") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
+        else if (strcmp(arg[0], "size") == 0) {
+            if (argc != 2) {
+                printf("Usage: size <fichier.ppm>\n");
             }
-            int l1, l2, c1, c2;
-            char nouveau[100];
-
-            if (scanf("%d %d %d %d %s", &l1, &l2, &c1, &c2, nouveau) != 5) {
-                printf("Erreur: Arguments de découpe manquants ou incorrects.\n");
-                continue;
-            }
-
-            PPMImage* cut_img = cut_operation(img, l1, l2, c1, c2); // Opération 5
-            if (cut_img) {
-                write_ppm(cut_img, nouveau);
-                free_ppm_img(cut_img);
-                printf("Découpage effectue et enregistre sous %s\n", nouveau);
-            } else {
-                printf("Erreur lors du decoupage. Verifiez les coordonnées.\n");
+            else {
+                size_operation(arg[1]);
             }
         }
-
-        // --- Commande dom (Foncer/Éclaircir Dominante) ---
-        // Format du TP: dom c val fichier.ppm (mais l'exemple d'exécution semble charger l'image avant l'op)
-        // Je vais suivre le format de l'exemple: dom R 4. \mesimages\image2.ppm
-        else if (strcmp(command, "dom") == 0) {
-            if (!img) {
-                printf("Aucune image chargee.\n");
-                continue;
+        else if (strcmp(arg[0], "cut") == 0) {
+            if (argc != 7) {
+                printf("Usage: cut <fichier.ppm> l1 l2 c1 c2 <fichier_resultat.ppm>\n");
             }
+            else {
+                int l1 = atoi(arg[2]);
+                int l2 = atoi(arg[3]);
+                int c1 = atoi(arg[4]);
+                int c2 = atoi(arg[5]);
+                char* output_filename = arg[6];
 
-            char dominant_cible;
-            int ajustement;
-            char nouveau[100];
-
-            if (scanf(" %c %d %s", &dominant_cible, &ajustement, nouveau) != 3) {
-                printf("Erreur: Arguments de 'dom' manquants ou incorrects (Format: dom R|G|B val fichier).\n");
-                continue;
-            }
-
-            PPMImage* dom_img = dom_operation(img, dominant_cible, ajustement); // Opération 1
-            if (dom_img) {
-                write_ppm(dom_img, nouveau);
-                free_ppm_img(dom_img);
-                printf("Operation 'dom' effectuee sur dominante %c avec ajustement %d -> %s\n",
-                       dominant_cible, ajustement, nouveau);
+                PPMImage* img = read_ppm(arg[1]);
+                if (img == NULL) {
+                    printf("fichier non trouve\n");
+                }
+                else {
+                    PPMImage* result = cut_operation(img, l1, l2, c1, c2);
+                    if (result) {
+                        write_ppm(result, output_filename);
+                        free_ppm_img(result);
+                        printf("operation effectuee\n");
+                    }
+                    else {
+                        printf("coordonnees invalides\n");
+                    }
+                    free_ppm_img(img);
+                }
             }
         }
-
-        // --- Commande exit ---
-        else if (strcmp(command, "exit") == 0) {
-            printf("Fin du programme.\n");
-            if (img) free_ppm_img(img);
-            break;
+        else if (strcmp(arg[0], "neg") == 0) {
+            if (argc != 3) {
+                printf("Usage: neg <fichier.ppm> <fichier_resultat.ppm>\n");
+            }
+            else {
+                PPMImage* img = read_ppm(arg[1]);
+                if (img == NULL) {
+                    printf("fichier non trouve\n");
+                }
+                else {
+                    PPMImage* result = neg_operation(img);
+                    if (result) {
+                        write_ppm(result, arg[2]);
+                        free_ppm_img(result);
+                        printf("operation effectuee\n");
+                    }
+                    free_ppm_img(img);
+                }
+            }
         }
-
+        else if (strcmp(arg[0], "fil") == 0) {
+            if (argc != 3) {
+                printf("Usage: fil <fichier.ppm> <fichier_resultat.ppm>\n");
+            }
+            else {
+                PPMImage* img = read_ppm(arg[1]);
+                if (img == NULL) {
+                    printf("fichier non trouve\n");
+                }
+                else {
+                    PPMImage* result = fil_operation(img);
+                    if (result) {
+                        write_ppm(result, arg[2]);
+                        free_ppm_img(result);
+                        printf("operation effectuee\n");
+                    }
+                    free_ppm_img(img);
+                }
+            }
+        }
         else {
-            printf("Commande inconnue. Tapez 'help' pour la liste des commandes.\n");
+            printf("Commande inconnue. Tapez 'help' pour afficher la liste des commandes.\n");
         }
-
-        // Nettoyer le buffer d'entree après chaque commande (utile si des arguments sont lus partiellement)
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF);
     }
+
     return 0;
 }
