@@ -39,7 +39,7 @@ Ce filtre réduit le bruit en analysant le voisinage de chaque pixel. Pour chaqu
 
 **• DEMANOU FOUDJI Karl Albert Kuete 24F2995**
 
-**• ABONDO Jean Joël 23V2214**
+**• ABONDO Jean Joël 23V2214** : Contribution à la discussion et à la mise en place d’une stratégie de gestion des fichiers, en appui sur le principe de programmation modulaire pour la conception des différents sous-programmes de fonctionnalités. Proposition et élaboration d’un main de test interactif simulant une invite de commande (PPMViewer>), permettant d’exécuter et de valider individuellement les différentes opérations sur les images PPM. Implémentation complète du code de la fonctionnalité de filtre médian (filtre_median.c précédemment), incluant la conception algorithmique et le tri des valeurs par couleur. Participation aux tests et à l’intégration des sous-programmes dans le projet global afin d’assurer la cohérence et la compatibilité entre les modules.
 
 **• CHOUPO FOGAING Rudy Aubin 24G2708**
 
