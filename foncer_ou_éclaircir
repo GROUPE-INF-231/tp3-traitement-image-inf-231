@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "ppm_io.h" 
+
+int main() {
+    char in[50], out[50], c;
+    int k;
+
+    printf("Fichier d'entrée : "); scanf("%s", in);
+    printf("Fichier de sortie : "); scanf("%s", out);
+    printf("Dominante (R/G/B) : "); scanf(" %c", &c);
+    printf("Valeur (+éclaircir / -foncer) : "); scanf("%d", &k);
+
+  
+    PPMImage* img = read_ppm(in);
+    if (img) {
+        printf("Erreur : impossible de lire l'image.\n");
+        return 1;
+    }
+    for (int i = 0; i < img->height; i++) {
+        for (int j = 0; j < img->width; j++) {
+            Pixel p = img->pixels[i][j];
+            char dom = get_dominant_color(p);
+
+            if (dom == c) {
+                p.r = clamp(p.r + k, 0, 255);
+                p.g = clamp(p.g + k, 0, 255);
+                p.b = clamp(p.b + k, 0, 255);
+                img->pixels[i][j] = p;
+            }
+        }
+    }
+    write_ppm(img, out);
+
+    free_ppm_img(img);
+
+    printf("Image modifiée enregistrée dans %s\n", out);
+    return 0;
+}
