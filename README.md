@@ -35,7 +35,7 @@ Ce filtre réduit le bruit en analysant le voisinage de chaque pixel. Pour chaqu
 
 # Contribution des membres du groupe
 
-**• FAGNA TCHAPTCHET Noel Vanys 24G2310** : Développement complet de toutes les fonctions utilitaires nécessaires aux six fonctionnalités demandées. Développement du **main.c** et intégration avec les opérations sur les images PPM (operations.c) ainsi que les fonctions utilitaires (ppm_io.c). Correction intégrale de la fonctionnalité **size_operation** pour l’affichage des dimensions d’une image. Proposition et explication de la programmation modulaire au sein de l’équipe, avec communication active pour guider les membres. Tests et débogage des fonctionnalités développées par les autres membres. Rédaction complete du fichier **README**.
+**• FAGNA TCHAPTCHET Noel Vanys 24G2310** : Développement complet de toutes les fonctions utilitaires nécessaires aux six fonctionnalités demandées. Développement du **main.c** et intégration avec les opérations sur les images PPM (operations.c) ainsi que les fonctions utilitaires (ppm_io.c). Correction intégrale de la fonctionnalité **size_operation** pour l’affichage des dimensions d’une image. Proposition et explication de la programmation modulaire au sein de l’équipe, avec communication active pour guider les membres. Tests et débogage des fonctionnalités développées par les autres membres. Rédaction majoritaire du fichier **README**.
 
 **• DEMANOU FOUDJI Karl Albert Kuete 24F2995**
 
