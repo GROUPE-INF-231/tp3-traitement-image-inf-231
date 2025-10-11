@@ -43,7 +43,12 @@ Ce filtre réduit le bruit en analysant le voisinage de chaque pixel. Pour chaqu
 
 **• CHOUPO FOGAING Rudy Aubin 24G2708**
 
-**• BAKALACK Basile Romain 23V2529**
+**• BAKALACK Basile Romain 23V2529** :
+Dans ce TP, j’ai travailler sur la fonction qui sert à modifier les couleurs dominantes dans une image PPM.
+J’ai utilisé la fonction read_ppm pour lire l’image et copy_image pour faire une copie avant de la modifier.
+Ensuite, j’ai parcouru tous les pixels et, pour chacun, j’ai vérifié la couleur la plus forte (rouge, vert ou bleu) avec get_dominant_color.
+Si cette couleur correspond à celle choisie par l’utilisateur, j’ai changé ses valeurs pour les rendre plus claires ou plus foncées, tout en utilisant clamp pour ne pas dépasser les limites (0 à 255).
+J’ai aussi ajouté des vérifications pour m’assurer que l’image existe bien et que la couleur donnée est correcte.
 
 **• NGUIMGOU ZEPA Eveline Oceane 24F2579**
 
