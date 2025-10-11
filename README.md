@@ -49,6 +49,7 @@ J’ai utilisé la fonction read_ppm pour lire l’image et copy_image pour fair
 Ensuite, j’ai parcouru tous les pixels et, pour chacun, j’ai vérifié la couleur la plus forte (rouge, vert ou bleu) avec get_dominant_color.
 Si cette couleur correspond à celle choisie par l’utilisateur, j’ai changé ses valeurs pour les rendre plus claires ou plus foncées, tout en utilisant clamp pour ne pas dépasser les limites (0 à 255).
 J’ai aussi ajouté des vérifications pour m’assurer que l’image existe bien et que la couleur donnée est correcte.
+j'ai également partiellement rédigé le README du groupe.
 
 **• NGUIMGOU ZEPA Eveline Oceane 24F2579**
 
